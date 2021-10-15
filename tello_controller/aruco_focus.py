@@ -8,8 +8,11 @@ from sensor_msgs.msg import Image
 
 from tello_msgs.srv import TelloAction
 from rclpy.qos import qos_profile_sensor_data
-from cv_bridge import CvBridge  # Package to convert between ROS and OpenCV Images
+from cv_bridge import CvBridge, CvBridgeError  # Package to convert between ROS and OpenCV Images
 import cv2  # OpenCV library
+import cv2.aruco as aruco
+
+from Pid import PID
 
 
 class ActionManager(Node):
@@ -41,10 +44,12 @@ class Controller(Node):
         # Init desired speed
         self.vx = 0.0
         self.vy = 0.0
+        self.vz = 0.0
         self.v_yaw = 0.0
 
         ### CREATE THE SUBSCRIBER FOR IMAGE RECEPTION
         self.image_subscription_ = self.create_subscription(Image, '/drone1/image_raw', self.image_callback, 10)
+        self.display_image = True
         # Used to convert between ROS and OpenCV images
         self.br = CvBridge()
 
@@ -56,16 +61,47 @@ class Controller(Node):
         msg = Twist()
         msg.linear.x = self.vx
         msg.linear.y = self.vy
+        msg.linear.z = self.vz
         msg.angular.z = self.v_yaw
         self.cmd_vel_publisher_.publish(msg)
 
     def image_callback(self, data):
-        self.get_logger().info('Receiving video frame')
-        current_frame = self.br.imgmsg_to_cv2(data)
-        # Display image
-        cv2.imshow("camera", current_frame)
+        """
+        I'm used to get camera's image.
+        I can set the desired velocity according to the aruco detection
+        """
+        try:
+            cv_image = self.br.imgmsg_to_cv2(data)
+            # Our operations on the frame come here
+            gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+            aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_1000)
+            parameters = aruco.DetectorParameters_create()
 
-        cv2.waitKey(1)
+            # lists of ids and the corners beloning to each id
+            corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+
+            gray = aruco.drawDetectedMarkers(gray, corners)
+
+            if len(corners) > 0:
+                print("TAG SEEN %s"%ids)
+                #TODO : Here, write your controller
+                #From the corners information, set the right command speed
+                #Like self.vx, self.vy, self.v_yaw, to control the UAV
+            else:
+                print("No tag seen..")
+                #The UAV stay in the same pose, it doesn't move
+                self.vx = 0.0
+                self.vy = 0.0
+                self.vz = 0.0
+                self.v_yaw = 0.0
+
+            # Display the resulting frame
+            if self.display_image:
+                cv2.imshow('frame', gray)
+                cv2.waitKey(3)
+
+        except CvBridgeError as e:
+            pass
 
 
 def main(args=None):
