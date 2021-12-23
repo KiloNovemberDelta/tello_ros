@@ -107,7 +107,7 @@ namespace tello_gazebo
     pid::Controller x_controller_{false, 2, 0, 0};
     pid::Controller y_controller_{false, 2, 0, 0};
     pid::Controller z_controller_{false, 2, 0, 0};
-    pid::Controller yaw_controller_{false, 2, 0, 0};
+    pid::Controller yaw_controller_{false, 1, 0, 0};
 
   public:
 
@@ -130,6 +130,15 @@ namespace tello_gazebo
       y_controller_.set_target(y);
       z_controller_.set_target(z);
       yaw_controller_.set_target(yaw);
+    }
+    
+    
+    void set_target_continuous_velocities(double x, double y, double z, double yaw)
+    {
+      x_controller_.set_continuous_target(x);
+      y_controller_.set_continuous_target(y);
+      z_controller_.set_continuous_target(z);
+      yaw_controller_.set_continuous_target(yaw);
     }
 
     // Respond to a command of the form "rc x y z yaw"
@@ -342,11 +351,11 @@ namespace tello_gazebo
     {
       if (flight_state_ == FlightState::flying) {
         // TODO cmd_vel should specify velocity, not joystick position
-        set_target_velocities(
-          msg->linear.x * MAX_XY_V,
-          msg->linear.y * MAX_XY_V,
-          msg->linear.z * MAX_Z_V,
-          msg->angular.z * MAX_ANG_V);
+        set_target_continuous_velocities(
+          msg->linear.x,
+          msg->linear.y,
+          msg->linear.z,
+          msg->angular.z);
       }
     }
 

@@ -44,6 +44,11 @@ public:
     prev_error_ = 0;
     integral_ = 0;
   }
+  
+  void set_continuous_target(double target)
+  {
+    target_ = target;
+  }
 
   // Run one calculation
   double calc(double state, double dt, double bias)
