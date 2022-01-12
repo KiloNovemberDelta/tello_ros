@@ -48,7 +48,10 @@ class Controller(Node):
         self.v_yaw = 0.0
 
         ### CREATE THE SUBSCRIBER FOR IMAGE RECEPTION
-        self.image_subscription_ = self.create_subscription(Image, '/drone1/image_raw', self.image_callback, 10)
+        qos_policy = rclpy.qos.QoSProfile(reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
+                                          history=rclpy.qos.HistoryPolicy.KEEP_LAST,
+                                          depth=1)
+        self.image_subscription_ = self.create_subscription(Image, '/drone1/image_raw', self.image_callback, qos_profile=qos_policy)
         self.display_image = True
         # Used to convert between ROS and OpenCV images
         self.br = CvBridge()
