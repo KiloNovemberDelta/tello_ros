@@ -9,6 +9,12 @@
       <max_step_size>0.001</max_step_size>
     </physics>
 
+    <gui>
+      <camera name="user_cam">
+        <pose>-4.37 -2.61 2.15 0 0.3 0.3</pose>
+      </camera>
+    </gui>
+
     <!-- Ground plane -->
     <include>
       <uri>model://ground_plane</uri>
