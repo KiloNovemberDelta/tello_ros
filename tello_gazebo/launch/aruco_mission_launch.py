@@ -25,7 +25,7 @@ def generate_launch_description():
 
         # Spawn tello.urdf 15s after gazebo has been launched (for my wsl machine it is required...)
           TimerAction(
-               period = 15.0,
+               period = 1.0,
                actions = [
                     Node(
                          package = "gazebo_ros",
