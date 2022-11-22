@@ -5,7 +5,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import ExecuteProcess
+from launch.actions import ExecuteProcess, TimerAction
 
 
 def generate_launch_description():
@@ -24,15 +24,20 @@ def generate_launch_description():
         ], output='screen'),
 
         # Spawn tello.urdf
-          Node(
-               package = "gazebo_ros",
-               executable = "spawn_entity.py",
-               arguments = [
-                    "-entity", "drone_ipsa",
-                    "-topic", "/robot_description",
-                    "-x", "0.0"
-               ]
-          ),
+        TimerAction(
+           period = 1.0,
+           actions = [
+                Node(
+                     package = "gazebo_ros",
+                     executable = "spawn_entity.py",
+                     arguments = [
+                          "-entity", "drone_ipsa",
+                          "-topic", "/robot_description",
+                          "-x", "0.0"
+                     ]
+                )
+           ]
+        ),
 
         # Publish static transforms
         Node(package='robot_state_publisher', executable='robot_state_publisher', output='screen',
